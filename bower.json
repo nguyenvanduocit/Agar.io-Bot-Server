@@ -1,0 +1,18 @@
+{
+  "name": "MusicEngine",
+  "version": "0.0.1",
+  "dependencies": {
+    "jquery": "latest",
+    "marionette": "latest"
+  },
+  "directory": "components",
+  "homepage": "https://github.com/tamaspiros/advanced-chat",
+  "authors": [
+    "Nguyen Van Duoc <nvduoc@senviet.org>"
+  ],
+  "main": "server.js",
+  "moduleType": [
+    "node"
+  ],
+  "license": "free"
+}
