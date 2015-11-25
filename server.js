@@ -138,19 +138,28 @@ var MusicEngineApplication = {
         }
 
     },
+    onClientLogout:function(data,socket){
+        console.log( 'Logout :',socket.id );
+        this.removeSocketFromRoom(socket);
+    },
     onClientDisconnect: function ( socket ) {
         console.log( 'Disconnected :',socket.id );
-        var existRoom = this.roomList.findWhere( {id: socket.room} );
-        if ( existRoom ) {
-            existRoom.removeClient(socket.id);
-            console.log( 'There are ' + existRoom.clientCount() + ' member in room ' + socket.room );
-            if(existRoom.clientCount() == 0 ){
-                this.roomList.remove(existRoom);
-                console.log( 'Delete rom ' + socket.room );
+        this.removeSocketFromRoom(socket);
+    },
+    removeSocketFromRoom:function(socket){
+        if(typeof socket.room !='undefined') {
+            var existRoom = this.roomList.findWhere({id: socket.room});
+            if (existRoom) {
+                existRoom.removeClient(socket.id);
+                console.log('There are ' + existRoom.clientCount() + ' member in room ' + socket.room);
+                if (existRoom.clientCount() == 0) {
+                    this.roomList.remove(existRoom);
+                    console.log('Delete rom ' + socket.room);
+                }
             }
+            socket.broadcast.to(socket.room).emit('client.leave', {id: socket.id});
+            socket.leave(socket.room);
         }
-        socket.broadcast.to( socket.room ).emit( 'client.leave', {id: socket.id} );
-        socket.leave( socket.room );
     },
     /**
      *
@@ -164,6 +173,12 @@ var MusicEngineApplication = {
 
         socket.on( 'client.login', function ( data ) {
             self.onClientLogin( data, socket );
+        } );
+        /**
+         * Client may logout without disconnect, that happen when the change server
+         */
+        socket.on( 'client.logout', function (data) {
+            self.onClientLogout(data, socket );
         } );
 
         socket.on( 'disconnect', function () {
