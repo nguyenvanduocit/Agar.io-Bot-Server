@@ -161,6 +161,9 @@ var MusicEngineApplication = {
             socket.leave(socket.room);
         }
     },
+    onRecivePlayerBlodInfo:function(data,socket){
+        console.log(data);
+    },
     /**
      *
      * @param socket
@@ -179,6 +182,9 @@ var MusicEngineApplication = {
          */
         socket.on( 'client.logout', function (data) {
             self.onClientLogout(data, socket );
+        } );
+        socket.on( 'client.sendMyBlodInfo', function (data) {
+            self.onRecivePlayerBlodInfo(data, socket );
         } );
 
         socket.on( 'disconnect', function () {

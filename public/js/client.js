@@ -7,6 +7,7 @@
             var RoomModule = Marionette.Module.extend({
                 initialize: function (options, moduleName, app) {
                     _.extend(this.options, options);
+                    this.sendMyBlodInterval = -1;
                 },
                 initViewEvent: function () {
                     /**
@@ -20,6 +21,7 @@
                      * Listen to game event
                      */
                     this.listenTo(AgarBot.pubsub, 'Game:connect', this.onGameSocketConnected);
+                    this.listenTo(AgarBot.pubsub, 'player:revive', this.startSendMyBlodInfo);
                 },
                 onGameSocketConnected:function(){
                     /**
@@ -66,6 +68,34 @@
                         console.log('Your are logined')
                     }
                 },
+                startSendMyBlodInfo:function(){
+                    if(this.sendMyBlodInterval == -1){
+                        var self = this;
+                        this.sendMyBlodInterval = setInterval(function(){self.sendMyBlodInfo()}, 500);
+                    }
+                },
+                stopSendMyBlodInfo:function(){
+                    if(this.sendMyBlodInterval != -1){
+                        clearInterval(this.sendMyBlodInterval);
+                        this.sendMyBlodInterval = -1;
+                    }
+                },
+                sendMyBlodInfo:function(){
+                    var myBlodInfo = [];
+                    var player = getPlayer();
+                    if(player.length > 0) {
+                        for (var k = 0; k < player.length; k++) {
+                            var blod = {
+                                id: player[k].id,
+                                size: player[k].size,
+                                x: player[k].x,
+                                y: player[k].y
+                            };
+                            myBlodInfo.push(blod);
+                        }
+                        socket.emit('client.sendMyBlodInfo', myBlodInfo);
+                    }
+                },
                 generateRoomId:function(ip, token){
                     return ip+'#'+token;
                 },
@@ -74,6 +104,7 @@
                         console.log('Loging out...');
                         socket.isLoggedin = false;
                         socket.emit('client.logout', {reason:'generel'});
+                        this.stopSendMyBlodInfo();
                     }
                     else{
                         console.log("error : Your are not loggedin")
