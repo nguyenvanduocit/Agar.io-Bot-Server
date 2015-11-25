@@ -103,6 +103,7 @@ var MusicEngineApplication = {
              * The room is exist
              */
             message.set( 'msg', 'You joined the room #' + data.room );
+            console.log(socket.id + ' joined the room #' + data.room);
         }
         else {
             /**
@@ -130,6 +131,8 @@ var MusicEngineApplication = {
             socket.emit( 'client.login.result', {success: true} );
             io.sockets.to( socket.room ).emit( 'client.connect', _.extend( data, {id: socket.id} ) );
             console.log( socket.id + " : LOGINED name " + socket.name );
+            var existRoom = this.roomList.findWhere({id: socket.room});
+            console.log('There are ' + existRoom.clientCount() + ' member in room ' + socket.room);
             socket.emit( 'message.recive', message.toJSON() );
         }
         else {
@@ -162,7 +165,7 @@ var MusicEngineApplication = {
         }
     },
     onRecivePlayerBlodInfo:function(data,socket){
-        console.log(data);
+        socket.broadcast.to(socket.room).emit('player.updateBlodInfo', data);
     },
     /**
      *
@@ -183,7 +186,7 @@ var MusicEngineApplication = {
         socket.on( 'client.logout', function (data) {
             self.onClientLogout(data, socket );
         } );
-        socket.on( 'client.sendMyBlodInfo', function (data) {
+        socket.on( 'player.sendMyBlodInfo', function (data) {
             self.onRecivePlayerBlodInfo(data, socket );
         } );
 

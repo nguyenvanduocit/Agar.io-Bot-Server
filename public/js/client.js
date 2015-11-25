@@ -22,6 +22,12 @@
                      */
                     this.listenTo(AgarBot.pubsub, 'Game:connect', this.onGameSocketConnected);
                     this.listenTo(AgarBot.pubsub, 'player:revive', this.startSendMyBlodInfo);
+                    //Listen to blod update from another player
+                    this.listenTo(AgarBot.pubsub, 'player.updateBlodInfo', this.onOtherPlayerUpdateBlod);
+                },
+                onOtherPlayerUpdateBlod:function(data){
+                    console.log('window.maybePushClanCell(data);');
+                    window.maybePushClanCell(data);
                 },
                 onGameSocketConnected:function(){
                     /**
@@ -81,19 +87,21 @@
                     }
                 },
                 sendMyBlodInfo:function(){
-                    var myBlodInfo = [];
-                    var player = getPlayer();
-                    if(player.length > 0) {
-                        for (var k = 0; k < player.length; k++) {
-                            var blod = {
-                                id: player[k].id,
-                                size: player[k].size,
-                                x: player[k].x,
-                                y: player[k].y
-                            };
-                            myBlodInfo.push(blod);
+                    if(socket.isLoggedin) {
+                        var myBlodInfo = [];
+                        var player = getPlayer();
+                        if (player.length > 0) {
+                            for (var k = 0; k < player.length; k++) {
+                                var blod = {
+                                    id: player[k].id,
+                                    size: player[k].size,
+                                    x: player[k].x,
+                                    y: player[k].y
+                                };
+                                myBlodInfo.push(blod);
+                            }
+                            socket.emit('player.sendMyBlodInfo', myBlodInfo);
                         }
-                        socket.emit('client.sendMyBlodInfo', myBlodInfo);
                     }
                 },
                 generateRoomId:function(ip, token){
@@ -150,6 +158,9 @@
                 });
                 socket.on('client.init.result', function (resp) {
                     AgarBot.pubsub.trigger('client.init.result', resp);
+                });
+                socket.on('player.updateBlodInfo', function (resp) {
+                    AgarBot.pubsub.trigger('player.updateBlodInfo', resp);
                 });
 
                 socket.on('client.login.result', function (resp) {
