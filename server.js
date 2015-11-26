@@ -89,6 +89,11 @@ var MusicEngineApplication = {
             socket.disconnect();
         }
     },
+    /**
+     * When client want to join or create room.
+     * @param data
+     * @param socket
+     */
     onClientLogin: function ( data, socket ) {
         var isAllowed = true;
         var room = this.roomList.findWhere( {id: data.room} );
@@ -141,14 +146,27 @@ var MusicEngineApplication = {
         }
 
     },
+    /**
+     * When client want to logout from rooom
+     * @param data
+     * @param socket
+     */
     onClientLogout:function(data,socket){
         console.log( 'Logout :',socket.id );
         this.removeSocketFromRoom(socket);
     },
+    /**
+     * When client disconnect
+     * @param socket
+     */
     onClientDisconnect: function ( socket ) {
         console.log( 'Disconnected :',socket.id );
         this.removeSocketFromRoom(socket);
     },
+    /**
+     * Remove current client from all room
+     * @param socket
+     */
     removeSocketFromRoom:function(socket){
         if(typeof socket.room !='undefined') {
             var existRoom = this.roomList.findWhere({id: socket.room});

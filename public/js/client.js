@@ -25,10 +25,17 @@
                     //Listen to blod update from another player
                     this.listenTo(AgarBot.pubsub, 'player.updateBlodInfo', this.onOtherPlayerUpdateBlod);
                 },
+                /**
+                 * When recive other player's blod info
+                 * @param data
+                 */
                 onOtherPlayerUpdateBlod:function(data){
                     console.log('window.maybePushClanCell(data);');
                     window.maybePushClanCell(data);
                 },
+                /**
+                 * When agar socket connected
+                 */
                 onGameSocketConnected:function(){
                     /**
                      * Logout from current room
@@ -43,10 +50,18 @@
                     }
 
                 },
+                /**
+                 * When some room clreated
+                 * @param data
+                 */
                 onRoomCreate: function (data) {
                     console.log('Room created');
                     console.log(data);
                 },
+                /**
+                 * When init request responsed
+                 * @param resp
+                 */
                 onClientInitResult: function (resp) {
                     if (resp.isAllowed) {
                         console.log('Connect is allowed');
@@ -61,6 +76,9 @@
                         console.log('Connect is no allowed')
                     }
                 },
+                /**
+                 * Lieave room
+                 */
                 loginToServer:function(){
                     if(!socket.isLoggedin) {
                         console.log('Logining to server');
@@ -74,18 +92,27 @@
                         console.log('Your are logined')
                     }
                 },
+                /**
+                 * Send my blod
+                 */
                 startSendMyBlodInfo:function(){
                     if(this.sendMyBlodInterval == -1){
                         var self = this;
                         this.sendMyBlodInterval = setInterval(function(){self.sendMyBlodInfo()}, 500);
                     }
                 },
+                /**
+                 * Stop send my blod info
+                 */
                 stopSendMyBlodInfo:function(){
                     if(this.sendMyBlodInterval != -1){
                         clearInterval(this.sendMyBlodInterval);
                         this.sendMyBlodInterval = -1;
                     }
                 },
+                /**
+                 * Send my blod info
+                 */
                 sendMyBlodInfo:function(){
                     if(socket.isLoggedin) {
                         var myBlodInfo = [];
@@ -104,6 +131,12 @@
                         }
                     }
                 },
+                /**
+                 * Generate room id
+                 * @param ip
+                 * @param token
+                 * @returns {string}
+                 */
                 generateRoomId:function(ip, token){
                     return ip+'#'+token;
                 },
