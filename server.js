@@ -86,6 +86,7 @@ var MusicEngineApplication = {
         }
         socket.emit( 'client.init.result', message.toJSON() );
         if ( ! message.get('isAllowed') == true ) {
+            console.log('Init denei');
             socket.disconnect();
         }
     },
@@ -142,6 +143,7 @@ var MusicEngineApplication = {
         }
         else {
             socket.emit( 'client.login.result', {success: false} );
+            console.log('Login denie');
             socket.disconnect();
         }
 
@@ -204,6 +206,7 @@ var MusicEngineApplication = {
         socket.on( 'client.logout', function (data) {
             self.onClientLogout(data, socket );
         } );
+
         socket.on( 'player.sendMyBlodInfo', function (data) {
             self.onRecivePlayerBlodInfo(data, socket );
         } );

@@ -21,7 +21,7 @@
                      * Listen to game event
                      */
                     this.listenTo(AgarBot.pubsub, 'Game:connect', this.onGameSocketConnected);
-                    this.listenTo(AgarBot.pubsub, 'player:revive', this.startSendMyBlodInfo);
+                    this.listenTo(AgarBot.pubsub, 'player:revive', this.startCellsInfo);
                     //Listen to blod update from another player
                     this.listenTo(AgarBot.pubsub, 'player.updateBlodInfo', this.onOtherPlayerUpdateBlod);
                 },
@@ -30,8 +30,11 @@
                  * @param data
                  */
                 onOtherPlayerUpdateBlod:function(data){
-                    console.log('window.maybePushClanCell(data);');
-                    window.maybePushClanCell(data);
+                    try {
+                        window.maybePushClanCell(data);
+                    }catch(e){
+                        console.log(e);
+                    }
                 },
                 /**
                  * When agar socket connected
@@ -95,16 +98,16 @@
                 /**
                  * Send my blod
                  */
-                startSendMyBlodInfo:function(){
+                startCellsInfo:function(){
                     if(this.sendMyBlodInterval == -1){
                         var self = this;
-                        this.sendMyBlodInterval = setInterval(function(){self.sendMyBlodInfo()}, 500);
+                        this.sendMyBlodInterval = setInterval(function(){self.sendCellInfo()}, 500);
                     }
                 },
                 /**
                  * Stop send my blod info
                  */
-                stopSendMyBlodInfo:function(){
+                stopCellsInfo:function(){
                     if(this.sendMyBlodInterval != -1){
                         clearInterval(this.sendMyBlodInterval);
                         this.sendMyBlodInterval = -1;
@@ -113,22 +116,26 @@
                 /**
                  * Send my blod info
                  */
-                sendMyBlodInfo:function(){
+                sendCellInfo:function(){
                     if(socket.isLoggedin) {
-                        var myBlodInfo = [];
-                        var player = getPlayer();
-                        if (player.length > 0) {
-                            for (var k = 0; k < player.length; k++) {
-                                var blod = {
-                                    id: player[k].id,
-                                    size: player[k].size,
-                                    x: player[k].x,
-                                    y: player[k].y
-                                };
-                                myBlodInfo.push(blod);
-                            }
-                            socket.emit('player.sendMyBlodInfo', myBlodInfo);
-                        }
+                        /**
+                         * CurrentBlod info
+                         * @type {Array}
+                         */
+                        var allCells = getCells();
+                        var cellInfo = [];
+                        Object.keys(allCells).forEach(function(k, index) {
+                            var cell = {
+                                id: allCells[k].id,
+                                size: allCells[k].size,
+                                name :allCells[k].name,
+                                x: allCells[k].x,
+                                y: allCells[k].y,
+                                color: allCells[k].color
+                            };
+                            cellInfo.push(cell);
+                        });
+                        socket.emit('player.sendMyBlodInfo', cellInfo);
                     }
                 },
                 /**
@@ -145,7 +152,7 @@
                         console.log('Loging out...');
                         socket.isLoggedin = false;
                         socket.emit('client.logout', {reason:'generel'});
-                        this.stopSendMyBlodInfo();
+                        this.stopCellsInfo();
                     }
                     else{
                         console.log("error : Your are not loggedin")
