@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData">
+  <component name="PublishConfigData" serverName="Desktop">
     <serverData>
+      <paths name="Desktop">
+        <serverdata>
+          <mappings>
+            <mapping deploy="agarbotServer" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="Diadiemphatgiao.vn">
         <serverdata>
           <mappings>

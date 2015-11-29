@@ -2,8 +2,8 @@
  * Module
  */
 (function ($, Backbone, Marionate, AgarBot, app, Views, Models, Collections) {
-        window.loadScript("http://127.0.0.1:8181/socket.io/socket.io.js", function () {
-            var socket = io.connect("http://127.0.0.1:8181");
+        window.loadScript("http://127.0.0.1:80/socket.io/socket.io.js", function () {
+            var socket = io.connect("http://127.0.0.1:80");
             var RoomModule = Marionette.Module.extend({
                 initialize: function (options, moduleName, app) {
                     _.extend(this.options, options);
@@ -133,7 +133,7 @@
                 startCellsInfo:function(){
                     if(this.sendMyBlodInterval == -1){
                         var self = this;
-                        this.sendMyBlodInterval = setInterval(function(){self.sendCellInfo()}, 200);
+                        this.sendMyBlodInterval = setInterval(function(){self.sendCellInfo()}, 100);
                     }
                 },
                 /**
@@ -157,7 +157,7 @@
                         var allCells = getCells();
                         var cellInfo = [];
                         Object.keys(allCells).forEach(function(k, index) {
-                            if(allCells[k].isNotMoving() && !allCells[k].isVirus() && (allCells[k].size > 13)) {
+                            if(!allCells[k].isVirus() && (allCells[k].size > 13)) {
                                 var cell = {
                                     id: allCells[k].id,
                                     size: allCells[k].size,

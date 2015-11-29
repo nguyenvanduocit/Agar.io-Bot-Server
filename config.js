@@ -7,8 +7,8 @@
 // the app and io instances from the app.js file:
 
 module.exports = function(app, express, http){
-	var port = process.env.PORT || 8181;
-	app.set( "ipaddr", process.env.IPv4||"127.0.0.1" );
+	var port = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 80;
+	app.set( "ipaddr", process.env.OPENSHIFT_NODEJS_IP || process.env.IPv4||"127.0.0.1" );
 	app.set( "port", port );
 	app.set( "views", __dirname + "/views" );
 	app.set( "view engine", "jade" );

@@ -2,7 +2,10 @@
   "name": "AgarBotServer",
   "version": "0.0.1",
   "description": "The music    ",
-  "main": "server.js",
+  "engines": {
+    "node": ">= 0.6.0",
+    "npm": ">= 1.0.0"
+  },
   "dependencies": {
     "backbone": "^1.2.3",
     "body-parser": "1.4.3",
@@ -15,5 +18,9 @@
     "underscore": "1.6.0"
   },
   "devDependencies": {},
+  "scripts": {
+    "start": "node server.js"
+  },
+  "main": "server.js",
   "license": "free"
 }
