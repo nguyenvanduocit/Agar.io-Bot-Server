@@ -22,8 +22,40 @@
                      */
                     this.listenTo(AgarBot.pubsub, 'Game:connect', this.onGameSocketConnected);
                     this.listenTo(AgarBot.pubsub, 'player:revive', this.startCellsInfo);
+                    this.listenTo(AgarBot.pubsub, 'game:updateMassterInfo', this.onSetToMaster);
                     //Listen to blod update from another player
                     this.listenTo(AgarBot.pubsub, 'player.updateBlodInfo', this.onOtherPlayerUpdateBlod);
+
+                    this.listenTo(AgarBot.pubsub, 'command.invite', this.onInviteRecived);
+                    this.listenTo(AgarBot.pubsub, 'sendCommand', this.onSendCommand);
+                },
+                /**
+                 * TODO move to controlpanel
+                 */
+                onSendCommand:function(data){
+                    socket.emit('sendCommand',data);
+                },
+                onInviteRecived:function(data){
+                    if(window.isFeeder()){
+                        /**
+                         * Just connect
+                         */
+                        $(".partyToken").val("agar.io/#" + encodeURIComponent(data.key));
+                        $("#helloContainer").attr("data-party-state", "5");
+                        try {
+                            console.log('Accept invited');
+                            setGameMode(":party");
+                            connect(data.ip, data.key);
+                            setNick('DuocNV Feeder Bot');
+                        }catch(e){
+                            console.log(e)
+                        }
+                    }else{
+                        console.log('Recive invite');
+                    }
+                },
+                onSetToMaster:function(data){
+                    socket.emit('player:masterInfo',data);
                 },
                 /**
                  * When recive other player's blod info
@@ -101,7 +133,7 @@
                 startCellsInfo:function(){
                     if(this.sendMyBlodInterval == -1){
                         var self = this;
-                        this.sendMyBlodInterval = setInterval(function(){self.sendCellInfo()}, 500);
+                        this.sendMyBlodInterval = setInterval(function(){self.sendCellInfo()}, 200);
                     }
                 },
                 /**
@@ -125,15 +157,17 @@
                         var allCells = getCells();
                         var cellInfo = [];
                         Object.keys(allCells).forEach(function(k, index) {
-                            var cell = {
-                                id: allCells[k].id,
-                                size: allCells[k].size,
-                                name :allCells[k].name,
-                                x: allCells[k].x,
-                                y: allCells[k].y,
-                                color: allCells[k].color
-                            };
-                            cellInfo.push(cell);
+                            if(allCells[k].isNotMoving() && !allCells[k].isVirus() && (allCells[k].size > 13)) {
+                                var cell = {
+                                    id: allCells[k].id,
+                                    size: allCells[k].size,
+                                    name :allCells[k].name,
+                                    x: allCells[k].x,
+                                    y: allCells[k].y,
+                                    color: allCells[k].color
+                                };
+                                cellInfo.push(cell);
+                            }
                         });
                         socket.emit('player.sendMyBlodInfo', cellInfo);
                     }
@@ -201,6 +235,14 @@
                 });
                 socket.on('player.updateBlodInfo', function (resp) {
                     AgarBot.pubsub.trigger('player.updateBlodInfo', resp);
+                });
+                socket.on('player:masterInfo', function (resp) {
+                    AgarBot.pubsub.trigger('server:masterInfo', resp);
+                    //Listen on js/FeedBot/FeedBot.js:66
+                });
+                socket.on('command.invite', function (resp) {
+                    AgarBot.pubsub.trigger('command.invite', resp);
+                    //Listen on js/FeedBot/FeedBot.js:66
                 });
 
                 socket.on('client.login.result', function (resp) {

@@ -187,6 +187,28 @@ var MusicEngineApplication = {
     onRecivePlayerBlodInfo:function(data,socket){
         socket.broadcast.to(socket.room).emit('player.updateBlodInfo', data);
     },
+    onReciveMasterInfo:function(data, socket){
+        socket.broadcast.to(socket.room).emit('player:masterInfo', data);
+    },
+    onReciveCommand:function(data, socket){
+        var commandArgs = {};
+        var eventName = false;
+        switch(data.command){
+            case 'invite':
+                eventName = 'command.invite';
+                commandArgs = {
+                    ip:data.args.ip,
+                    key:data.args.key
+                };
+                break;
+        }
+        if(eventName != false){
+            /**
+             * Emit to all client, bot logined or not
+             */
+            socket.broadcast.emit(eventName, commandArgs);
+        }
+    },
     /**
      *
      * @param socket
@@ -209,6 +231,13 @@ var MusicEngineApplication = {
 
         socket.on( 'player.sendMyBlodInfo', function (data) {
             self.onRecivePlayerBlodInfo(data, socket );
+        } );
+        socket.on( 'player:masterInfo', function (data) {
+            self.onReciveMasterInfo(data, socket );
+        } );
+
+        socket.on( 'sendCommand', function (data) {
+            self.onReciveCommand(data, socket );
         } );
 
         socket.on( 'disconnect', function () {
