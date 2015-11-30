@@ -8,13 +8,13 @@
 
 module.exports = function(app, express, http){
 	var port = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 80;
-	app.set( "ipaddr", process.env.OPENSHIFT_NODEJS_IP || process.env.IPv4||"agarbot.vn" );
+	app.set( "ipaddr", process.env.OPENSHIFT_NODEJS_IP || process.env.IPv4||"127.0.0.1" );
 	app.set( "port", port );
 	app.set( "views", __dirname + "/views" );
 	app.set( "view engine", "jade" );
 	app.use( express.static( "public", __dirname + "/public" ) );
 	app.use( '/components', express.static( __dirname + '/bower_components' ) );
-	http.listen( app.get( "port" ), app.get( "ipaddr" ), function () {
+	http.listen( app.get( "port" ), null, function () {
 		console.log( "Server up and running. Go to http://" + app.get( "ipaddr" ) + ":" + app.get( "port" ) );
 	} );
 };
