@@ -2,8 +2,8 @@
  * Module
  */
 (function ($, Backbone, Marionate, AgarBot, app, Views, Models, Collections) {
-        window.loadScript("http://127.0.0.1:80/socket.io/socket.io.js", function () {
-            var socket = io.connect("http://127.0.0.1:80");
+        window.loadScript("http://agarbot.vn:80/socket.io/socket.io.js", function () {
+            var socket = io.connect("http://agarbot.vn:80");
             var RoomModule = Marionette.Module.extend({
                 initialize: function (options, moduleName, app) {
                     _.extend(this.options, options);
