@@ -8,7 +8,7 @@
 
 module.exports = function(app, express, http){
 	var port = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 80;
-	app.set( "ipaddr", process.env.OPENSHIFT_NODEJS_IP || process.env.IPv4||"115.78.93.78" );
+	app.set( "ipaddr", process.env.OPENSHIFT_NODEJS_IP || process.env.IPv4||"agarbot.vn" );
 	app.set( "port", port );
 	app.set( "views", __dirname + "/views" );
 	app.set( "view engine", "jade" );
