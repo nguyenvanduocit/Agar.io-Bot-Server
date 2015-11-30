@@ -37,17 +37,21 @@
                 },
                 onInviteRecived:function(data){
                     if(window.isFeeder()){
-                        /**
-                         * Just connect
-                         */
-                        $(".partyToken").val("agar.io/#" + encodeURIComponent(data.key));
-                        $("#helloContainer").attr("data-party-state", "5");
                         try {
-                            console.log('Accept invited');
-                            setGameMode(":party");
+                            /**
+                             * Just connect
+                             */
+                            $("#helloContainer").attr("data-gamemode", ':party');
+                            $("#gamemode").val(":party");
+                            $(".partyToken").val("agar.io/#" + d.encodeURIComponent(data.key));
+                            $("#helloContainer").attr("data-party-state", "5");
+                            var a = decodeURIComponent(data.key).replace(/.*#/gim, "");
+                            window.history && window.history.replaceState && window.history.replaceState({}, window.document.title, "#"+encodeURIComponent(a));
+                            window.setGameMode(":party");
                             connect(data.ip, data.key);
-                            setNick('DuocNV Feeder Bot');
+                            window.setNick('DuocNV');
                         }catch(e){
+                            e("#helloContainer").attr("data-party-state", "6");
                             console.log(e)
                         }
                     }else{
