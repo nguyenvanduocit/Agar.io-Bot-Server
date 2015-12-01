@@ -226,7 +226,8 @@ var MusicEngineApplication = {
                 eventName = 'command.invite';
                 commandArgs = {
                     ip:data.args.ip,
-                    key:data.args.key
+                    key:data.args.key,
+                    leaderBoard:data.args.leaderBoard,
                 };
                 break;
         }

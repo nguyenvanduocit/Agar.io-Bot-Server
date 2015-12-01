@@ -31,15 +31,19 @@
                     this.listenTo(AgarBot.pubsub, 'sendCommand', this.onSendCommand);
                 },
                 onLeaderBoardUpdated:function(){
-                    console.log(this.stage);
+                    var leaderBoard = window.getLeaderBoard();
+                    var li = '';
+                    for(var i = 0; i < leaderBoard.length; i++){
+                        li+='<li>'+(leaderBoard[i].name||'Uname') + '-' + leaderBoard[i].id +'</li>';
+                    }
+                    $('.agario-promo').html('<ul>'+li+'</ul>');
                     if(this.stage == 'INIT.SUCCESS')
                     {
                         console.log('Login');
                         this.loginToServer();
                     }else if(this.stage == "LOGIN.SUCCESS"){
-                        socket.emit('player.updateLeaderBoard',window.getLeaderBoard());
+                        socket.emit('player.updateLeaderBoard',leaderBoard);
                     }else if(this.stage == 'LOGIN.FIND_ROOM'){
-                        var leaderBoard = window.getLeaderBoard();
                         var found = false;
                         for(var i = 0; i < leaderBoard.length; i++){
                             for(var j = 0; j < this.clanLeaderBoard.length; j++){
@@ -53,8 +57,9 @@
                             }
                         }
                         if(!found){
+                            console.log(leaderBoard);
                             console.log('This server is not match with room leader board.');
-                            setTimeout(window.findServer, 2000);
+                            setTimeout(window.findServer, 10000);
                         }else{
                             this.stage = 'INIT.WAITING';
                         }
