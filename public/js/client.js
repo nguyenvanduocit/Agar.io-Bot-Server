@@ -43,7 +43,7 @@
                              */
                             $("#helloContainer").attr("data-gamemode", ':party');
                             $("#gamemode").val(":party");
-                            $(".partyToken").val("agar.io/#" + d.encodeURIComponent(data.key));
+                            $(".partyToken").val("agar.io/#" + encodeURIComponent(data.key));
                             $("#helloContainer").attr("data-party-state", "5");
                             var a = decodeURIComponent(data.key).replace(/.*#/gim, "");
                             window.history && window.history.replaceState && window.history.replaceState({}, window.document.title, "#"+encodeURIComponent(a));
