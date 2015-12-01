@@ -32,7 +32,8 @@ MusicEngine.Models.Room = backbone.Model.extend( {
     defaults: {
         'id': '',
         'cells':null,
-        'clients':new MusicEngine.Collections.Client()
+        'clients':new MusicEngine.Collections.Client(),
+        'leaderBoard':[]
     },
     findWhereClient:function(attributes){
         var clients = this.get('clients');
@@ -96,7 +97,8 @@ var MusicEngineApplication = {
      * @param socket
      */
     onClientLogin: function ( data, socket ) {
-        var isAllowed = true;
+        var isAllowed = false;
+        var reason = '';
         var room = this.roomList.findWhere( {id: data.room} );
         var message = new MusicEngine.Models.Message();
         message.set( 'id', uuid.v1() );
@@ -105,11 +107,29 @@ var MusicEngineApplication = {
          * May create room
          */
         if ( room ) {
-            /**
-             * The room is exist
-             */
-            message.set( 'msg', 'You joined the room #' + data.room );
-            console.log(socket.id + ' joined the room #' + data.room);
+            var roomLeaderBoard = room.get('leaderBoard');
+            if(roomLeaderBoard){
+                /**
+                 * The room is exist
+                 */
+                message.set( 'msg', 'You joined the room #' + data.room );
+                console.log(socket.id + ' joined the room #' + data.room);
+                for(var i = 0; i < roomLeaderBoard.length; i++){
+                    var found = false;
+                    for(var j = 0; j < data.leaderBoard.length; j++){
+                        if(data.leaderBoard[j].id == roomLeaderBoard[i].id){
+                            isAllowed = true;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(found){
+                        break;
+                    }else{
+                        reason = 'Leader board is not match';
+                    }
+                }
+            }
         }
         else {
             /**
@@ -119,13 +139,15 @@ var MusicEngineApplication = {
             console.log( socket.id + ' created the room ' + data.room );
             room = new MusicEngine.Models.Room({id: data.room});
             this.roomList.add( room );
-            socket.broadcast.to( data.room ).emit( 'room.create', room.toJSON() );
+            isAllowed = true;
         }
-        room.addClient(new MusicEngine.Models.Client({
-            id:socket.id,
-            name:data.name
-        }));
         if ( isAllowed ) {
+            room.set('leaderBoard', data.leaderBoard);
+            room.addClient(new MusicEngine.Models.Client({
+                id:socket.id,
+                name:data.name
+            }));
+
             /**
              * Decrease max user remain
              */
@@ -134,11 +156,11 @@ var MusicEngineApplication = {
             socket.room = data.room;
             socket.join( socket.room );
 
+            socket.broadcast.to( data.room ).emit( 'room.create', room.toJSON() );
             socket.emit( 'client.login.result', {success: true} );
             io.sockets.to( socket.room ).emit( 'client.connect', _.extend( data, {id: socket.id} ) );
             console.log( socket.id + " : LOGINED name " + socket.name );
-            var existRoom = this.roomList.findWhere({id: socket.room});
-            console.log('There are ' + existRoom.clientCount() + ' member in room ' + socket.room);
+            console.log('There are ' + room.clientCount() + ' member in room ' + socket.room);
             socket.emit( 'message.recive', message.toJSON() );
         }
         else {
@@ -184,6 +206,12 @@ var MusicEngineApplication = {
             socket.leave(socket.room);
         }
     },
+    onReciveLeaderBoard:function(data, socket){
+        var room = this.roomList.findWhere( {id: data.room} );
+        if(room){
+            room.set('leaderBoard', data);
+        }
+    },
     onRecivePlayerBlodInfo:function(data,socket){
         socket.broadcast.to(socket.room).emit('player.updateBlodInfo', data);
     },
@@ -198,7 +226,8 @@ var MusicEngineApplication = {
                 eventName = 'command.invite';
                 commandArgs = {
                     ip:data.args.ip,
-                    key:data.args.key
+                    key:data.args.key,
+                    leaderBoard:data.args.leaderBoard,
                 };
                 break;
         }
@@ -231,6 +260,9 @@ var MusicEngineApplication = {
 
         socket.on( 'player.sendMyBlodInfo', function (data) {
             self.onRecivePlayerBlodInfo(data, socket );
+        } );
+        socket.on( 'player.updateLeaderBoard', function (data) {
+            self.onReciveLeaderBoard(data, socket );
         } );
         socket.on( 'player:masterInfo', function (data) {
             self.onReciveMasterInfo(data, socket );

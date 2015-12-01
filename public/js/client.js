@@ -8,6 +8,8 @@
                 initialize: function (options, moduleName, app) {
                     _.extend(this.options, options);
                     this.sendMyBlodInterval = -1;
+                    this.stage = 'INIT.WAITING';
+                    this.clanLeaderBoard = [];
                 },
                 initViewEvent: function () {
                     /**
@@ -15,19 +17,53 @@
                      */
                     this.listenTo(AgarBot.pubsub, 'client.init.result', this.onClientInitResult);
                     this.listenTo(AgarBot.pubsub, 'client.login.result', this.onClientLoginResult);
-                    this.listenTo(AgarBot.pubsub, 'room.create', this.onRoomCreate);
+                    this.listenTo(AgarBot.pubsub, 'client.login.success', this.onClientLoginSuccess);
                     this.listenTo(AgarBot.pubsub, 'disconnect', this.onDisconnect);
-                    /**
-                     * Listen to game event
-                     */
-                    this.listenTo(AgarBot.pubsub, 'Game:connect', this.onGameSocketConnected);
+                    this.listenTo(AgarBot.pubsub, 'updateLeaderBoard', this.onLeaderBoardUpdated);
+                },
+                initEventAfterLoginSuccess:function(){
+                    this.listenTo(AgarBot.pubsub, 'room.create', this.onRoomCreate);
                     this.listenTo(AgarBot.pubsub, 'player:revive', this.startCellsInfo);
                     this.listenTo(AgarBot.pubsub, 'game:updateMassterInfo', this.onSetToMaster);
                     //Listen to blod update from another player
                     this.listenTo(AgarBot.pubsub, 'player.updateBlodInfo', this.onOtherPlayerUpdateBlod);
-
                     this.listenTo(AgarBot.pubsub, 'command.invite', this.onInviteRecived);
                     this.listenTo(AgarBot.pubsub, 'sendCommand', this.onSendCommand);
+                },
+                onLeaderBoardUpdated:function(){
+                    var leaderBoard = window.getLeaderBoard();
+                    var li = '';
+                    for(var i = 0; i < leaderBoard.length; i++){
+                        li+='<li>'+(leaderBoard[i].name||'Uname') + '-' + leaderBoard[i].id +'</li>';
+                    }
+                    $('.agario-promo').html('<ul>'+li+'</ul>');
+                    if(this.stage == 'INIT.SUCCESS')
+                    {
+                        console.log('Login');
+                        this.loginToServer();
+                    }else if(this.stage == "LOGIN.SUCCESS"){
+                        socket.emit('player.updateLeaderBoard',leaderBoard);
+                    }else if(this.stage == 'LOGIN.FIND_ROOM'){
+                        var found = false;
+                        for(var i = 0; i < leaderBoard.length; i++){
+                            for(var j = 0; j < this.clanLeaderBoard.length; j++){
+                                if(leaderBoard[i].id == this.clanLeaderBoard[j].id){
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if(found){
+                                break;
+                            }
+                        }
+                        if(!found){
+                            console.log(leaderBoard);
+                            console.log('This server is not match with room leader board.');
+                            setTimeout(window.findServer, 10000);
+                        }else{
+                            this.stage = 'INIT.WAITING';
+                        }
+                    }
                 },
                 /**
                  * TODO move to controlpanel
@@ -37,7 +73,8 @@
                 },
                 onInviteRecived:function(data){
                     if(window.isFeeder()){
-                        try {
+                        //TODO implement on party mode
+                        if(window.getMode() == ':party'){
                             /**
                              * Just connect
                              */
@@ -47,12 +84,14 @@
                             $("#helloContainer").attr("data-party-state", "5");
                             var a = decodeURIComponent(data.key).replace(/.*#/gim, "");
                             window.history && window.history.replaceState && window.history.replaceState({}, window.document.title, "#"+encodeURIComponent(a));
-                            window.setGameMode(":party");
+                            setGameMode(":party");
                             connect(data.ip, data.key);
-                            window.setNick('DuocNV');
-                        }catch(e){
-                            e("#helloContainer").attr("data-party-state", "6");
-                            console.log(e)
+                            setNick('DuocNV');
+                        }
+                        else if(window.getMode() == ''){
+                            console.log(data);
+                            this.stage = 'LOGIN.FIND_ROOM';
+                            this.clanLeaderBoard = data.leaderBoard;
                         }
                     }else{
                         console.log('Recive invite');
@@ -73,23 +112,6 @@
                     }
                 },
                 /**
-                 * When agar socket connected
-                 */
-                onGameSocketConnected:function(){
-                    /**
-                     * Logout from current room
-                     */
-                    if(socket.isLoggedin) {
-                        console.log('Server changed, Logout from current room');
-                        this.logoutFromServer();
-                    }
-                    if(window.getMode() ==':party') {
-                        socket.emit('client.logout');
-                        this.loginToServer();
-                    }
-
-                },
-                /**
                  * When some room clreated
                  * @param data
                  */
@@ -103,29 +125,24 @@
                  */
                 onClientInitResult: function (resp) {
                     if (resp.isAllowed) {
-                        console.log('Connect is allowed');
-                        if(window.getMode() ==':party'){
-                            console.log('This is party, Login to server');
-                            this.loginToServer();
-                        }
-                        else{
-                            console.log('This is not party, no need to login to server');
-                        }
+                        this.stage = 'INIT.SUCCESS';
                     } else {
-                        console.log('Connect is no allowed')
+                        this.stage = 'INIT.FAIL';
                     }
+                    console.log(this.stage);
                 },
                 /**
                  * Lieave room
                  */
                 loginToServer:function(){
-                    if(!socket.isLoggedin) {
+                    if(this.stage =='INIT.SUCCESS') {
                         console.log('Logining to server');
                         var data = {
                             room: this.generateRoomId(window.getServer(), window.getToken()),
-                            name: window.getOriginalName()
+                            name: window.getOriginalName(),
+                            leaderBoard : window.getLeaderBoard()
                         };
-                        socket.isLoggedin = true;
+                        this.stage = "LOGIN.WAITING";
                         socket.emit('client.login', data);
                     }else{
                         console.log('Your are logined')
@@ -196,8 +213,18 @@
                         console.log("error : Your are not loggedin")
                     }
                 },
+                onClientLoginSuccess:function(){
+                    this.initEventAfterLoginSuccess();
+                },
                 onClientLoginResult: function (resp) {
-                    console.log("Login result ", resp);
+                    if(resp.success){
+                        this.stage = "LOGIN.SUCCESS";
+                        AgarBot.pubsub.trigger('client.login.success');
+                    }else{
+                        this.stage = "LOGIN.FAIL";
+                        AgarBot.pubsub.trigger('client.login.fail');
+                    }
+                    console.log(this.stage);
                 },
                 onDisconnect: function (data) {
                     console.log('You are disconnected');
