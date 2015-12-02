@@ -18,7 +18,8 @@
                     this.listenTo(AgarBot.pubsub, 'client.init.result', this.onClientInitResult);
                     this.listenTo(AgarBot.pubsub, 'client.login.result', this.onClientLoginResult);
                     this.listenTo(AgarBot.pubsub, 'client.login.success', this.onClientLoginSuccess);
-                    this.listenTo(AgarBot.pubsub, 'disconnect', this.onDisconnect);
+                    this.listenTo(AgarBot.pubsub, 'server:disconnect', this.onDisconnect);
+                    this.listenTo(AgarBot.pubsub, 'game:disconnected', this.onGameDisconnected);
                     this.listenTo(AgarBot.pubsub, 'updateLeaderBoard', this.onLeaderBoardUpdated);
                 },
                 initEventAfterLoginSuccess:function(){
@@ -30,14 +31,17 @@
                     this.listenTo(AgarBot.pubsub, 'command.invite', this.onInviteRecived);
                     this.listenTo(AgarBot.pubsub, 'sendCommand', this.onSendCommand);
                 },
+                onGameDisconnected:function(){
+                    this.logoutFromServer();
+                },
                 onLeaderBoardUpdated:function(){
                     var leaderBoard = window.getLeaderBoard();
                     var li = '';
                     for(var i = 0; i < leaderBoard.length; i++){
-                        li+='<li>'+(leaderBoard[i].name||'Uname') + '-' + leaderBoard[i].id +'</li>';
+                        li+='<li>'+(leaderBoard[i].name||'Unname') + '-' + leaderBoard[i].id +'</li>';
                     }
                     $('.agario-promo').html('<ul>'+li+'</ul>');
-                    if(this.stage == 'INIT.SUCCESS')
+                    if(this.stage == 'INIT.SUCCESS' || this.stage == 'LOGIN.ROOM_FOUND')
                     {
                         console.log('Login');
                         this.loginToServer();
@@ -61,7 +65,7 @@
                             console.log('This server is not match with room leader board.');
                             setTimeout(window.findServer, 10000);
                         }else{
-                            this.stage = 'INIT.WAITING';
+                            this.stage = 'LOGIN.ROOM_FOUND';
                         }
                     }
                 },
@@ -72,23 +76,25 @@
                     socket.emit('sendCommand',data);
                 },
                 onInviteRecived:function(data){
+                    console.log('Recive invited');
                     if(window.isFeeder()){
                         //TODO implement on party mode
-                        if(data.mode == ':party'){
-                            /**
-                             * Just connect
-                             */
-                            $("#helloContainer").attr("data-gamemode", ':party');
-                            $("#gamemode").val(":party");
-                            $(".partyToken").val("agar.io/#" + encodeURIComponent(data.key));
-                            $("#helloContainer").attr("data-party-state", "5");
-                            var a = decodeURIComponent(data.key).replace(/.*#/gim, "");
-                            window.history && window.history.replaceState && window.history.replaceState({}, window.document.title, "#"+encodeURIComponent(a));
-                            setGameMode(":party");
-                            connect(data.ip, data.key);
-                            setNick('DuocNV');
-                        }
-                        else if(data.mode == ''){
+                        if(data.mode == ':party' || data.mode == ''){
+                            if(data.mode == ':party') {
+
+
+                                /**
+                                 * Just connect
+                                 */
+                                $("#helloContainer").attr("data-gamemode", ':party');
+                                $("#gamemode").val(":party");
+                                $(".partyToken").val("agar.io/#" + encodeURIComponent(data.key));
+                                $("#helloContainer").attr("data-party-state", "5");
+                                var a = decodeURIComponent(data.key).replace(/.*#/gim, "");
+                                window.history && window.history.replaceState && window.history.replaceState({}, window.document.title, "#" + encodeURIComponent(a));
+                                setGameMode(":party");
+                                connect(data.ip, data.key);
+                            }
                             this.stage = 'LOGIN.FIND_ROOM';
                             this.clanLeaderBoard = data.leaderBoard;
                         }else{
@@ -134,7 +140,7 @@
                  * Lieave room
                  */
                 loginToServer:function(){
-                    if(this.stage =='INIT.SUCCESS') {
+                    if(this.stage =='INIT.SUCCESS' || this.stage == 'LOGIN.ROOM_FOUND') {
                         console.log('Logining to server');
                         var data = {
                             room: this.generateRoomId(window.getServer(), window.getToken()),
@@ -258,7 +264,7 @@
                     }
                 });
                 socket.on('disconnect', function () {
-                    AgarBot.pubsub.trigger('disconnect');
+                    AgarBot.pubsub.trigger('server:disconnect');
                 });
                 socket.on('client.init.result', function (resp) {
                     AgarBot.pubsub.trigger('client.init.result', resp);
