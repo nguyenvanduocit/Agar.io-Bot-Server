@@ -1,3 +1,4 @@
+var colors = require('colors/safe');
 var express = require( 'express' );
 var app = express();
 var http = require( 'http' ).createServer( app );
@@ -41,11 +42,11 @@ MusicEngine.Models.Room = backbone.Model.extend( {
     },
     addClient:function(client) {
         var clients = this.get('clients');
-        return clients.add(client);
+        clients.add(client);
     },
     removeClient:function(client){
         var clients = this.get('clients');
-        return clients.remove(client);
+        clients.remove(client);
     },
     clientCount:function(){
         var clients = this.get('clients');
@@ -88,7 +89,6 @@ var MusicEngineApplication = {
         socket.emit( 'client.init.result', message.toJSON() );
         if ( ! message.get('isAllowed') == true ) {
             console.log('Init denei');
-            socket.disconnect();
         }
     },
     /**
@@ -137,7 +137,12 @@ var MusicEngineApplication = {
              */
             message.set( 'msg', 'You Create the room ' + data.room + ', Send this page\'s address to friend and get fun.');
             console.log( socket.id + ' created the room ' + data.room );
-            room = new MusicEngine.Models.Room({id: data.room});
+            room = new MusicEngine.Models.Room(
+                {
+                    id: data.room,
+                    clients:new MusicEngine.Collections.Client()
+                }
+            );
             this.roomList.add( room );
             isAllowed = true;
         }
@@ -166,7 +171,6 @@ var MusicEngineApplication = {
         else {
             socket.emit( 'client.login.result', {success: false} );
             console.log('Login denie');
-            socket.disconnect();
         }
 
     },
@@ -185,6 +189,7 @@ var MusicEngineApplication = {
      */
     onClientDisconnect: function ( socket ) {
         console.log( 'Disconnected :',socket.id );
+        console.log(colors.red("'--------------DISCONNECTED--[" + socket.id + " ]---------------"));
         this.removeSocketFromRoom(socket);
     },
     /**
@@ -227,7 +232,8 @@ var MusicEngineApplication = {
                 commandArgs = {
                     ip:data.args.ip,
                     key:data.args.key,
-                    leaderBoard:data.args.leaderBoard,
+                    mode:data.args.mode,
+                    leaderBoard:data.args.leaderBoard
                 };
                 break;
         }
@@ -245,7 +251,7 @@ var MusicEngineApplication = {
     onClientConnect: function ( socket ) {
 
         var self = this;
-        console.log("CONNECTED :",socket.id );
+        console.log(colors.green("-------------CONNECTED----[" + socket.id + "]-----------------"));
         self.onClientInit( socket );
 
         socket.on( 'client.login', function ( data ) {

@@ -74,7 +74,7 @@
                 onInviteRecived:function(data){
                     if(window.isFeeder()){
                         //TODO implement on party mode
-                        if(window.getMode() == ':party'){
+                        if(data.mode == ':party'){
                             /**
                              * Just connect
                              */
@@ -88,13 +88,12 @@
                             connect(data.ip, data.key);
                             setNick('DuocNV');
                         }
-                        else if(window.getMode() == ''){
-                            console.log(data);
+                        else if(data.mode == ''){
                             this.stage = 'LOGIN.FIND_ROOM';
                             this.clanLeaderBoard = data.leaderBoard;
+                        }else{
+                            console.log('This mode is not accept')
                         }
-                    }else{
-                        console.log('Recive invite');
                     }
                 },
                 onSetToMaster:function(data){
