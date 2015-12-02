@@ -188,7 +188,6 @@ var MusicEngineApplication = {
      * @param socket
      */
     onClientDisconnect: function ( socket ) {
-        console.log( 'Disconnected :',socket.id );
         console.log(colors.red("DISCONNECTED : "),socket.id);
         this.removeSocketFromRoom(socket);
     },

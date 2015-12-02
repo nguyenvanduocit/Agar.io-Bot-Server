@@ -17,6 +17,7 @@
                      */
                     this.listenTo(AgarBot.pubsub, 'client.init.result', this.onClientInitResult);
                     this.listenTo(AgarBot.pubsub, 'client.login.result', this.onClientLoginResult);
+                    this.listenTo(AgarBot.pubsub, 'client.logout.result', this.onClientLogoutResult);
                     this.listenTo(AgarBot.pubsub, 'client.login.success', this.onClientLoginSuccess);
                     this.listenTo(AgarBot.pubsub, 'server:disconnect', this.onDisconnect);
                     this.listenTo(AgarBot.pubsub, 'game:disconnected', this.onGameDisconnected);
@@ -41,7 +42,7 @@
                         li+='<li>'+(leaderBoard[i].name||'Unname') + '-' + leaderBoard[i].id +'</li>';
                     }
                     $('.agario-promo').html('<ul>'+li+'</ul>');
-                    if(this.stage == 'INIT.SUCCESS' || this.stage == 'LOGIN.ROOM_FOUND')
+                    if(this.stage == 'INIT.SUCCESS' || this.stage == 'LOGIN.ROOM_FOUND' || this.stage == 'LOGOUT.SUCCESS')
                     {
                         console.log('Login');
                         this.loginToServer();
@@ -208,7 +209,7 @@
                     return ip+'#'+token;
                 },
                 logoutFromServer:function(){
-                    if(socket.isLoggedin){
+                    if(this.stage == 'LOGIN.SUCCESS'){
                         console.log('Loging out...');
                         socket.isLoggedin = false;
                         socket.emit('client.logout', {reason:'generel'});
@@ -220,6 +221,10 @@
                 },
                 onClientLoginSuccess:function(){
                     this.initEventAfterLoginSuccess();
+                },
+                onClientLogoutResult:function(){
+                    this.stage = "LOGOUT.SUCCESS";
+                    console.log("LOGOUT")
                 },
                 onClientLoginResult: function (resp) {
                     if(resp.success){
@@ -283,6 +288,9 @@
 
                 socket.on('client.login.result', function (resp) {
                     AgarBot.pubsub.trigger('client.login.result', resp);
+                });
+                socket.on('client.logout.result', function (resp) {
+                    AgarBot.pubsub.trigger('client.logout.result', resp);
                 });
                 socket.on('client.leave', function (resp) {
                     AgarBot.pubsub.trigger('client.leave', resp);
