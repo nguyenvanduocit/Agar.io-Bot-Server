@@ -216,9 +216,8 @@ var MusicEngineApplication = {
         }
     },
     onReciveLeaderBoard:function(data, socket){
-        var room = this.roomList.findWhere( {id: data.room} );
+        var room = this.roomList.findWhere( {id: socket.room} );
         if(room){
-            console.log('update Leader board');
             room.set('leaderBoard', data);
         }
     },
