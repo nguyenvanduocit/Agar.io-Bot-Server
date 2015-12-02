@@ -32,6 +32,9 @@
                     this.listenTo(AgarBot.pubsub, 'sendCommand', this.onSendCommand);
 
                 },
+                onChangeBotSettingRecived:function(){
+
+                },
                 onGameDisconnected:function(){
                     this.logoutFromServer();
                 },
@@ -292,6 +295,10 @@
                 });
                 socket.on('command.invite', function (resp) {
                     AgarBot.pubsub.trigger('command.invite', resp);
+                    //Listen on js/FeedBot/FeedBot.js:66
+                });
+                socket.on('command.changeBotSetting', function (resp) {
+                    AgarBot.pubsub.trigger('command.changeBotSetting', resp);
                     //Listen on js/FeedBot/FeedBot.js:66
                 });
 

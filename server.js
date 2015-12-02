@@ -242,6 +242,12 @@ var MusicEngineApplication = {
                     leaderBoard:data.args.leaderBoard
                 };
                 break;
+            case 'changeBotSetting':
+                eventName = 'command.changeBotSetting';
+                commandArgs = {
+                    minimumSizeToMerge:data.args.minimumSizeToMerge
+                };
+                break;
         }
         if(eventName != false){
             /**
