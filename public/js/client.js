@@ -17,20 +17,20 @@
                      */
                     this.listenTo(AgarBot.pubsub, 'client.init.result', this.onClientInitResult);
                     this.listenTo(AgarBot.pubsub, 'client.login.result', this.onClientLoginResult);
-                    this.listenTo(AgarBot.pubsub, 'client.logout.result', this.onClientLogoutResult);
-                    this.listenTo(AgarBot.pubsub, 'client.login.success', this.onClientLoginSuccess);
                     this.listenTo(AgarBot.pubsub, 'server:disconnect', this.onDisconnect);
                     this.listenTo(AgarBot.pubsub, 'game:disconnected', this.onGameDisconnected);
                     this.listenTo(AgarBot.pubsub, 'updateLeaderBoard', this.onLeaderBoardUpdated);
-                },
-                initEventAfterLoginSuccess:function(){
+
+
                     this.listenTo(AgarBot.pubsub, 'room.create', this.onRoomCreate);
                     this.listenTo(AgarBot.pubsub, 'player:revive', this.startCellsInfo);
+                    this.listenTo(AgarBot.pubsub, 'player:dead', this.stopCellsInfo);
                     this.listenTo(AgarBot.pubsub, 'game:updateMassterInfo', this.onSetToMaster);
                     //Listen to blod update from another player
                     this.listenTo(AgarBot.pubsub, 'player.updateBlodInfo', this.onOtherPlayerUpdateBlod);
                     this.listenTo(AgarBot.pubsub, 'command.invite', this.onInviteRecived);
                     this.listenTo(AgarBot.pubsub, 'sendCommand', this.onSendCommand);
+
                 },
                 onGameDisconnected:function(){
                     this.logoutFromServer();
@@ -43,7 +43,7 @@
                     }
                     var serverInfo = getServer() + "#" + getToken();
                     $('.agario-shop-panel').html('<ol>'+li+'</ol>');
-                    if(this.stage == 'INIT.SUCCESS')
+                    if(this.stage == 'INIT.SUCCESS' || this.stage == 'LOGOUT.SUCCESS' || this.stage == 'LOGIN.ROOM_FOUND')
                     {
                         console.log('Login');
                         this.loginToServer();
@@ -53,7 +53,7 @@
                         var found = false;
                         for(var i = 0; i < leaderBoard.length; i++){
                             for(var j = 0; j < this.clanLeaderBoard.length; j++){
-                                if(leaderBoard[i].id == this.clanLeaderBoard[j].id){
+                                if(leaderBoard[i].name == this.clanLeaderBoard[j].name){
                                     found = true;
                                     break;
                                 }
@@ -64,9 +64,12 @@
                         }
                         if(!found){
                             console.log(leaderBoard);
+                            console.log(this.clanLeaderBoard);
                             console.log('This server is not match with room leader board.');
                             setTimeout(window.findServer, 10000);
+                            window.disconnect();
                         }else{
+                            console.log('this room is not match');
                             this.stage = 'LOGIN.ROOM_FOUND';
                         }
                     }
@@ -75,21 +78,20 @@
                  * TODO move to controlpanel
                  */
                 onSendCommand:function(data){
-                    socket.emit('sendCommand',data);
+                    if(this.stage == 'LOGIN.SUCCESS') {
+                        socket.emit('sendCommand', data);
+                    }
                 },
                 onInviteRecived:function(data){
                     console.log('Recive invited');
-                    if(window.isFeeder()){
+                    if(window.isFeeder() && this.stage == 'LOGIN.SUCCESS'){
                         //TODO implement on party mode
                         if(data.mode == ':party' || data.mode == ''){
                             if(data.mode == ':party') {
-
-
                                 /**
                                  * Just connect
                                  */
-                                $("#helloContainer").attr("data-gamemode", ':party');
-                                $("#gamemode").val(":party");
+                                setRegion(data.region);
                                 $(".partyToken").val("agar.io/#" + encodeURIComponent(data.key));
                                 $("#helloContainer").attr("data-party-state", "5");
                                 var a = decodeURIComponent(data.key).replace(/.*#/gim, "");
@@ -105,17 +107,21 @@
                     }
                 },
                 onSetToMaster:function(data){
-                    socket.emit('player:masterInfo',data);
+                    if(this.stage == 'LOGIN.SUCCESS') {
+                        socket.emit('player:masterInfo', data);
+                    }
                 },
                 /**
                  * When recive other player's blod info
                  * @param data
                  */
                 onOtherPlayerUpdateBlod:function(data){
-                    try {
-                        window.maybePushClanCell(data);
-                    }catch(e){
-                        console.log(e);
+                    if(this.stage == 'LOGIN.SUCCESS') {
+                        try {
+                            window.maybePushClanCell(data);
+                        } catch (e) {
+                            console.log(e);
+                        }
                     }
                 },
                 /**
@@ -142,7 +148,7 @@
                  * Lieave room
                  */
                 loginToServer:function(){
-                    if(this.stage =='INIT.SUCCESS' || this.stage == 'LOGIN.ROOM_FOUND') {
+                    if(this.stage =='INIT.SUCCESS' || this.stage == 'LOGIN.ROOM_FOUND' || this.stage == 'LOGOUT.SUCCESS') {
                         console.log('Logining to server');
                         var data = {
                             room: this.generateRoomId(window.getServer(), window.getToken()),
@@ -159,7 +165,7 @@
                  * Send my blod
                  */
                 startCellsInfo:function(){
-                    if(this.sendMyBlodInterval == -1){
+                    if(this.sendMyBlodInterval == -1 && this.stage == 'LOGIN.SUCCESS'){
                         var self = this;
                         this.sendMyBlodInterval = setInterval(function(){self.sendCellInfo()}, 100);
                     }
@@ -177,7 +183,7 @@
                  * Send my blod info
                  */
                 sendCellInfo:function(){
-                    if(socket.isLoggedin) {
+                    if(this.stage == 'LOGIN.SUCCESS') {
                         /**
                          * CurrentBlod info
                          * @type {Array}
@@ -212,28 +218,30 @@
                 logoutFromServer:function(){
                     if(this.stage == 'LOGIN.SUCCESS'){
                         console.log('Loging out...');
-                        socket.isLoggedin = false;
                         socket.emit('client.logout', {reason:'generel'});
+                        this.stage = 'LOGOUT.SUCCESS';
                         this.stopCellsInfo();
                     }
                     else{
                         console.log("error : Your are not loggedin")
                     }
                 },
-                onClientLoginSuccess:function(){
-                    this.initEventAfterLoginSuccess();
-                },
-                onClientLogoutResult:function(){
-                    this.stage = "LOGOUT.SUCCESS";
-                    console.log("LOGOUT")
-                },
                 onClientLoginResult: function (resp) {
                     if(resp.success){
                         this.stage = "LOGIN.SUCCESS";
                         AgarBot.pubsub.trigger('client.login.success');
                     }else{
-                        this.stage = "LOGIN.FAIL";
-                        AgarBot.pubsub.trigger('client.login.fail');
+                        if(resp.reason == 'LEADERBOARD.NOT_MATCH')
+                        {
+                            this.stage = "LOGIN.FIND_ROOM";
+                            this.clanLeaderBoard = resp.leaderBoard;
+                            console.log('Login fail because leader board not match');
+                        }
+                        else{
+                            this.stage = "LOGIN.FAIL";
+                            console.log('Server is full');
+                            AgarBot.pubsub.trigger('client.login.fail');
+                        }
                     }
                     console.log(this.stage);
                 },
@@ -289,9 +297,6 @@
 
                 socket.on('client.login.result', function (resp) {
                     AgarBot.pubsub.trigger('client.login.result', resp);
-                });
-                socket.on('client.logout.result', function (resp) {
-                    AgarBot.pubsub.trigger('client.logout.result', resp);
                 });
                 socket.on('client.leave', function (resp) {
                     AgarBot.pubsub.trigger('client.leave', resp);

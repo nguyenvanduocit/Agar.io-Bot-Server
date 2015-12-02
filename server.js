@@ -117,7 +117,7 @@ var MusicEngineApplication = {
                 for(var i = 0; i < roomLeaderBoard.length; i++){
                     var found = false;
                     for(var j = 0; j < data.leaderBoard.length; j++){
-                        if(data.leaderBoard[j].id == roomLeaderBoard[i].id){
+                        if(data.leaderBoard[j].name == roomLeaderBoard[i].name){
                             isAllowed = true;
                             found = true;
                             break;
@@ -169,7 +169,11 @@ var MusicEngineApplication = {
             socket.emit( 'message.recive', message.toJSON() );
         }
         else {
-            socket.emit( 'client.login.result', {success: false} );
+            if(roomLeaderBoard){
+                socket.emit( 'client.login.result', {success: false, reason : 'LEADERBOARD.NOT_MATCH', leaderBoard:roomLeaderBoard} );
+            }else{
+                socket.emit( 'client.login.result', {success: false, reason : 'LIMIT.MAX_USER'} );
+            }
             console.log('Login denie');
         }
 
@@ -206,6 +210,7 @@ var MusicEngineApplication = {
                     console.log(colors.red('Delete rom '),socket.room);
                 }
             }
+            socket.emit('client.logout.result',{success:true});
             socket.broadcast.to(socket.room).emit('client.leave', {id: socket.id});
             socket.leave(socket.room);
         }
@@ -223,6 +228,7 @@ var MusicEngineApplication = {
         socket.broadcast.to(socket.room).emit('player:masterInfo', data);
     },
     onReciveCommand:function(data, socket){
+        console.log(data);
         var commandArgs = {};
         var eventName = false;
         switch(data.command){
@@ -231,6 +237,7 @@ var MusicEngineApplication = {
                 commandArgs = {
                     ip:data.args.ip,
                     key:data.args.key,
+                    region:data.args.region,
                     mode:data.args.mode,
                     leaderBoard:data.args.leaderBoard
                 };
