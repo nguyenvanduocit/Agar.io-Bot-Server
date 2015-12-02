@@ -36,7 +36,8 @@
                     for(var i = 0; i < leaderBoard.length; i++){
                         li+='<li>'+(leaderBoard[i].name||'Uname') + '-' + leaderBoard[i].id +'</li>';
                     }
-                    $('.agario-promo').html('<ul>'+li+'</ul>');
+                    var serverInfo = getServer() + "#" + getToken();
+                    $('.agario-shop-panel').html('<ol>'+li+'</ol>');
                     if(this.stage == 'INIT.SUCCESS')
                     {
                         console.log('Login');
