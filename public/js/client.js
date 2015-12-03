@@ -53,18 +53,7 @@
                     }else if(this.stage == "LOGIN.SUCCESS"){
                         socket.emit('player.updateLeaderBoard',leaderBoard);
                     }else if(this.stage == 'LOGIN.FIND_ROOM'){
-                        var found = false;
-                        for(var i = 0; i < leaderBoard.length; i++){
-                            for(var j = 0; j < this.clanLeaderBoard.length; j++){
-                                if(leaderBoard[i].name == this.clanLeaderBoard[j].name){
-                                    found = true;
-                                    break;
-                                }
-                            }
-                            if(found){
-                                break;
-                            }
-                        }
+                        var found = this.compareLeaderBoard(leaderBoard, this.clanLeaderBoard);
                         if(!found){
                             console.log(leaderBoard);
                             console.log(this.clanLeaderBoard);
@@ -72,7 +61,7 @@
                             setTimeout(window.findServer, 10000);
                             window.disconnect();
                         }else{
-                            console.log('this room is not match');
+                            console.log('this room is matched');
                             this.stage = 'LOGIN.ROOM_FOUND';
                         }
                     }
@@ -85,27 +74,45 @@
                         socket.emit('sendCommand', data);
                     }
                 },
+                compareLeaderBoard:function(boardA, boardB){
+                    for(var i = 0; i < boardA.length; i++){
+                        for(var j = 0; j < boardB.length; j++){
+                            if(boardA[i].name == boardB.name){
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                },
                 onInviteRecived:function(data){
                     console.log('Recive invited');
-                    if(window.isFeeder() && this.stage == 'LOGIN.SUCCESS'){
-                        //TODO implement on party mode
-                        if(data.mode == ':party' || data.mode == ''){
-                            if(data.mode == ':party') {
-                                /**
-                                 * Just connect
-                                 */
-                                setRegion(data.region);
-                                $(".partyToken").val("agar.io/#" + encodeURIComponent(data.key));
-                                $("#helloContainer").attr("data-party-state", "5");
-                                var a = decodeURIComponent(data.key).replace(/.*#/gim, "");
-                                window.history && window.history.replaceState && window.history.replaceState({}, window.document.title, "#" + encodeURIComponent(a));
-                                setGameMode(":party");
-                                connect(data.ip, data.key);
+                    if(window.isFeeder() && this.stage == 'LOGIN.SUCCE SS'){
+                        var isInroom = false;
+                        if(this.clanLeaderBoard.length > 0){
+                            isInroom = this.compareLeaderBoard(data.leaderBoard, this.clanLeaderBoard);
+                        }
+                        if(!isInroom){
+                            //TODO implement on party mode
+                            if(data.mode == ':party' || data.mode == ''){
+                                if(data.mode == ':party') {
+                                    /**
+                                     * Just connect
+                                     */
+                                    setRegion(data.region);
+                                    $(".partyToken").val("agar.io/#" + encodeURIComponent(data.key));
+                                    $("#helloContainer").attr("data-party-state", "5");
+                                    var a = decodeURIComponent(data.key).replace(/.*#/gim, "");
+                                    window.history && window.history.replaceState && window.history.replaceState({}, window.document.title, "#" + encodeURIComponent(a));
+                                    setGameMode(":party");
+                                    connect(data.ip, data.key);
+                                }
+                                this.stage = 'LOGIN.FIND_ROOM';
+                                this.clanLeaderBoard = data.leaderBoard;
+                            }else{
+                                console.log('This mode is not accept')
                             }
-                            this.stage = 'LOGIN.FIND_ROOM';
-                            this.clanLeaderBoard = data.leaderBoard;
                         }else{
-                            console.log('This mode is not accept')
+                            console.log('Your are in this room')
                         }
                     }
                 },
