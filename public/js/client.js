@@ -109,9 +109,9 @@
                             if(this.roomId == roomId){
                                 console.log('You are in this room, no need to join.');
                             }else{
-                                this.roomId = roomId;
                                 console.log('Leader board match but in diferrence room.');
                                 this.logoutFromServer();
+                                this.roomId = roomId;
                                 this.loginToServer();
                             }
                         }
