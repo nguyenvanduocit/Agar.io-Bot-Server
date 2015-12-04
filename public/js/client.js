@@ -33,9 +33,6 @@
                     this.listenTo(AgarBot.pubsub, 'sendCommand', this.onSendCommand);
 
                 },
-                onChangeBotSettingRecived:function(){
-
-                },
                 onGameDisconnected:function(){
                     this.logoutFromServer();
                 },
