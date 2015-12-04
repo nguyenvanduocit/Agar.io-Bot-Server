@@ -10,6 +10,7 @@
                     this.sendMyBlodInterval = -1;
                     this.stage = 'INIT.WAITING';
                     this.clanLeaderBoard = [];
+                    this.roomId = '';
                     this.gameMode = '';
                 },
                 initViewEvent: function () {
@@ -52,15 +53,8 @@
                     }else if(this.stage == 'LOGIN.FIND_ROOM'){
                         var found = this.compareLeaderBoard(leaderBoard, this.clanLeaderBoard);
                         if(!found){
-                            console.log(leaderBoard);
-                            console.log(this.clanLeaderBoard);
                             console.log('This server is not match with room leader board.');
-                            if(this.gameMode == ''){
-                                setTimeout(window.findServer, 10000);
-                            }
-                            else if(this.gameMode ==':party'){
-                                setTimeout(window.reConnect, 10000);
-                            }
+                            setTimeout(window.findServer, 10000);
                             window.disconnect();
                         }else{
                             console.log('this room is matched');
@@ -79,7 +73,7 @@
                 compareLeaderBoard:function(boardA, boardB){
                     for(var i = 0; i < boardA.length; i++){
                         for(var j = 0; j < boardB.length; j++){
-                            if(boardA[i].name == boardB.name){
+                            if(boardA[i].name == boardB[j].name){
                                 return true;
                             }
                         }
@@ -97,6 +91,7 @@
                             //TODO implement on party mode
                             if(data.mode == ':party' || data.mode == ''){
                                 if(data.mode == ':party') {
+                                    this.roomId = this.generateRoomId(data.ip, data.region, data.key);
                                     /**
                                      * Just connect
                                      */
@@ -158,8 +153,11 @@
                 loginToServer:function(){
                     if(this.stage =='INIT.SUCCESS' || this.stage == 'LOGIN.ROOM_FOUND' || this.stage == 'LOGOUT.SUCCESS') {
                         console.log('Logining to server');
+                        if(this.roomId == ''){
+                            this.roomId = this.generateRoomId(window.getServer(), window.getRegion(), window.getToken());
+                        }
                         var data = {
-                            room: this.generateRoomId(window.getServer(), window.getRegion(), window.getToken()),
+                            room: this.roomId,
                             name: window.getOriginalName(),
                             leaderBoard : window.getLeaderBoard()
                         };
@@ -220,14 +218,17 @@
                  * @param token
                  * @returns {string}
                  */
-                generateRoomId:function(ip,region, token){
+                generateRoomId:function(ip, region, token){
                     return ip + '#' + region +'#'+token;
                 },
                 logoutFromServer:function(){
                     if(this.stage == 'LOGIN.SUCCESS'){
                         console.log('Loging out...');
                         socket.emit('client.logout', {reason:'generel'});
-                        this.stage = 'LOGOUT.SUCCESS';
+                        if(this.stage != 'LOGIN.FIND_ROOM'){
+                            this.stage = 'LOGOUT.SUCCESS';
+                            this.roomId = '';
+                        }
                         this.stopCellsInfo();
                     }
                     else{

@@ -3,7 +3,6 @@ var express = require( 'express' );
 var app = express();
 var http = require( 'http' ).createServer( app );
 var io = require( "socket.io" )( http );
-var ioClient = require('socket.io-client');
 var uuid = require( 'node-uuid' );
 var _ = require( 'underscore' )._;
 var backbone = require( 'backbone' );
@@ -71,29 +70,6 @@ var MusicEngineApplication = {
         this.io = io.on( 'connection', function ( socket ) {
             self.onClientConnect( socket );
         } );
-        var socket = ioClient.connect("http://kscc-agarvn.rhcloud.com:8000");
-
-
-        socket.emit("room.play", {name: 'Fuck All', color: '#fff'});
-
-        socket.emit("room.join", {
-            ip: serverIp,
-            leaderboard: currentLeaderBoard,
-            name: 'Fuck all',
-            mode: vndot.gameMode,
-            code: ":party" === vndot.gameMode ? currentCode : ""
-        });
-
-        socket.emit("room.updatePosition", {
-            centerX: 100,
-            centerY: 100,
-            blobs: [{nx: 100, ny: 100, size: 15000}],
-            skin: 'http://heroandtn3.github.io/download/skin.svg',
-            name: 'Fuck all',
-            color: '#fff'
-        }, function (data) {
-            console.log(data);
-        })
     },
     /**
      * When client init, we send to client server infor and room list.
@@ -251,7 +227,6 @@ var MusicEngineApplication = {
         socket.broadcast.to(socket.room).emit('player:masterInfo', data);
     },
     onReciveCommand:function(data, socket){
-        console.log(data);
         var commandArgs = {};
         var eventName = false;
         switch(data.command){
