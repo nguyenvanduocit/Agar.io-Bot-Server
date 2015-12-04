@@ -32,7 +32,6 @@ MusicEngine.Models.Message = backbone.Model.extend( {
 MusicEngine.Models.Room = backbone.Model.extend( {
     defaults: {
         'id': '',
-        'cells':null,
         'clients':new MusicEngine.Collections.Client(),
         'leaderBoard':[]
     },

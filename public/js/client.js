@@ -98,12 +98,12 @@
                                     /**
                                      * Just connect
                                      */
-                                    setRegion(data.region);
+                                    setGameModeSilent(':party');
+                                    setRegionSilent(data.region);
                                     $(".partyToken").val("agar.io/#" + encodeURIComponent(data.key));
                                     $("#helloContainer").attr("data-party-state", "5");
                                     var a = decodeURIComponent(data.key).replace(/.*#/gim, "");
                                     window.history && window.history.replaceState && window.history.replaceState({}, window.document.title, "#" + encodeURIComponent(a));
-                                    setGameMode(":party");
                                     connect(data.ip, data.key);
                                 }
                                 this.stage = 'LOGIN.FIND_ROOM';
