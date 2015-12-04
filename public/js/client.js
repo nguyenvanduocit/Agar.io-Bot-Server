@@ -86,7 +86,7 @@
                         var leaderBoardMatched = false;
                         var roomId = this.generateRoomId(data.ip, data.region, data.key);
                         if(this.clanLeaderBoard.length > 0){
-                            isInroom = this.compareLeaderBoard(data.leaderBoard, this.clanLeaderBoard);
+                            leaderBoardMatched = this.compareLeaderBoard(data.leaderBoard, this.clanLeaderBoard);
                         }
                         if(!leaderBoardMatched){
                             //TODO implement on party mode
