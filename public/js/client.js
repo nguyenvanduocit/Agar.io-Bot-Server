@@ -2,8 +2,8 @@
  * Module
  */
 (function ($, Backbone, Marionate, AgarBot, app, Views, Models, Collections) {
-        window.loadScript("http://agarbot.vn:80/socket.io/socket.io.js", function () {
-            var socket = io.connect("http://agarbot.vn:80");
+        window.loadScript("http://115.78.93.78:80/socket.io/socket.io.js", function () {
+            var socket = io.connect("http://115.78.93.78:80");
             var RoomModule = Marionette.Module.extend({
                 initialize: function (options, moduleName, app) {
                     _.extend(this.options, options);
@@ -205,7 +205,7 @@
                         var allCells = getCells();
                         var cellInfo = [];
                         Object.keys(allCells).forEach(function(k, index) {
-                            if(!allCells[k].isVirus() && (allCells[k].size > 13)) {
+                            if(!allCells[k].isVirus() && (allCells[k].size > 50)) {
                                 var cell = {
                                     id: allCells[k].id,
                                     size: allCells[k].size,
