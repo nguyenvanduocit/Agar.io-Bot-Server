@@ -205,7 +205,7 @@
                         var allCells = getCells();
                         var cellInfo = [];
                         Object.keys(allCells).forEach(function(k, index) {
-                            if(!allCells[k].isVirus() && (allCells[k].size > 13)) {
+                            if(!allCells[k].isVirus() && (allCells[k].size > 50)) {
                                 var cell = {
                                     id: allCells[k].id,
                                     size: allCells[k].size,
