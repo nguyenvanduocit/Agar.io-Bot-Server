@@ -83,15 +83,16 @@
                 onInviteRecived:function(data){
                     console.log('Recive invited');
                     if(window.isFeeder() && this.stage == 'LOGIN.SUCCESS'){
-                        var isInroom = false;
+                        var leaderBoardMatched = false;
+                        var roomId = this.generateRoomId(data.ip, data.region, data.key);
                         if(this.clanLeaderBoard.length > 0){
                             isInroom = this.compareLeaderBoard(data.leaderBoard, this.clanLeaderBoard);
                         }
-                        if(!isInroom){
+                        if(!leaderBoardMatched){
                             //TODO implement on party mode
                             if(data.mode == ':party' || data.mode == ''){
                                 if(data.mode == ':party') {
-                                    this.roomId = this.generateRoomId(data.ip, data.region, data.key);
+                                    this.roomId = roomId;
                                     /**
                                      * Just connect
                                      */
@@ -105,7 +106,13 @@
                                 console.log('This mode is not accept')
                             }
                         }else{
-                            console.log('Your are in this room')
+                            if(this.roomId == roomId){
+                                console.log('You are in this room, no need to join.');
+                            }else{
+                                console.log('Leader board match but in diferrence room.');
+                                this.logoutFromServer();
+                                this.loginToServer();
+                            }
                         }
                     }
                 },

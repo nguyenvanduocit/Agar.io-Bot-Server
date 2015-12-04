@@ -242,9 +242,7 @@ var MusicEngineApplication = {
                 break;
             case 'changeBotSetting':
                 eventName = 'command.changeBotSetting';
-                commandArgs = {
-                    minimumSizeToMerge:data.args.minimumSizeToMerge
-                };
+                commandArgs = data.args;
                 break;
         }
         if(eventName != false){
