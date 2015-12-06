@@ -159,11 +159,11 @@ var MusicEngineApplication = {
             socket.name = data.name;
             socket.room = data.room;
             socket.join( socket.room );
-
-            socket.broadcast.to( data.room ).emit( 'room.create', room.toJSON() );
-            socket.emit( 'client.login.result', {success: true} );
-            io.sockets.to( socket.room ).emit( 'client.connect', _.extend( data, {id: socket.id} ) );
-            console.log( socket.id + " : LOGINED name " + socket.name );
+            data.id = socket.id;
+            io.sockets.emit( 'room.create', room.toJSON() );
+            socket.broadcast.to( data.room ).emit( 'client.connect', {name:data.name, id:socket.id} );
+            socket.emit( 'client.login.result', {success: true, room:room.toJSON()} );
+            console.log(colors.green("LOGINED") +" name " + socket.name );
             console.log('There are ' + room.clientCount() + ' member in room ' + socket.room);
             socket.emit( 'message.recive', message.toJSON() );
         }
@@ -207,6 +207,7 @@ var MusicEngineApplication = {
                 if (existRoom.clientCount() == 0) {
                     this.roomList.remove(existRoom);
                     console.log(colors.red('Delete rom '),socket.room);
+                    io.sockets.emit( 'room.deleted', existRoom.toJSON() );
                 }
             }
             socket.emit('client.logout.result',{success:true});
@@ -227,8 +228,20 @@ var MusicEngineApplication = {
         socket.broadcast.to(socket.room).emit('player:masterInfo', data);
     },
     onReciveCommand:function(data, socket){
+
         var commandArgs = {};
         var eventName = false;
+
+        if(typeof data.destination !='undefined'){
+            var room = this.roomList.findWhere( {id: socket.room} );
+            if(room){
+                var destination = room.findWhereClient({id:data.destination});
+                if(destination){
+
+                }
+            }
+
+        }
         switch(data.command){
             case 'invite':
                 eventName = 'command.invite';

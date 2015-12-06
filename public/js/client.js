@@ -30,7 +30,7 @@
                     this.listenTo(AgarBot.pubsub, 'game:updateMassterInfo', this.onSetToMaster);
                     //Listen to blod update from another player
                     this.listenTo(AgarBot.pubsub, 'player.updateBlodInfo', this.onOtherPlayerUpdateBlod);
-                    this.listenTo(AgarBot.pubsub, 'command.invite', this.onInviteRecived);
+                    this.listenTo(AgarBot.pubsub, 'command.recived', this.onCommandRecived);
                     this.listenTo(AgarBot.pubsub, 'sendCommand', this.onSendCommand);
 
                 },
@@ -41,7 +41,7 @@
                     var leaderBoard = window.getLeaderBoard();
                     var li = '';
                     for(var i = 0; i < leaderBoard.length; i++){
-                        li+='<li>'+(leaderBoard[i].name||'Unname') + '-' + leaderBoard[i].id +'</li>';
+                        li+='<li>'+(leaderBoard[i].name||'Unname') +'</li>';
                     }
                     $('.agario-shop-panel').html('<ol>'+li+'</ol>');
                     if(this.stage == 'INIT.SUCCESS' || this.stage == 'LOGOUT.SUCCESS' || this.stage == 'LOGIN.ROOM_FOUND')
@@ -79,6 +79,9 @@
                         }
                     }
                     return false;
+                },
+                onCommandRecived:function(data){
+                    if()
                 },
                 onInviteRecived:function(data){
                     console.log('Recive invited');
@@ -166,7 +169,7 @@
                         }
                         var data = {
                             room: this.roomId,
-                            name: window.getOriginalName(),
+                            name: $('#nick').val(),
                             leaderBoard : window.getLeaderBoard()
                         };
                         this.stage = "LOGIN.WAITING";
@@ -246,12 +249,12 @@
                 onClientLoginResult: function (resp) {
                     if(resp.success){
                         this.stage = "LOGIN.SUCCESS";
-                        AgarBot.pubsub.trigger('client.login.success');
+                        AgarBot.pubsub.trigger('client.login.success', resp);
                     }else{
                         if(resp.reason == 'LEADERBOARD.NOT_MATCH')
                         {
                             this.stage = "LOGIN.FIND_ROOM";
-                            this.clanLeaderBoard = resp.leaderBoard;
+                            this.clanLeaderBoard = resp.room.leaderBoard;
                             console.log('Login fail because leader board not match');
                         }
                         else{
@@ -307,8 +310,8 @@
                     AgarBot.pubsub.trigger('server:masterInfo', resp);
                     //Listen on js/FeedBot/FeedBot.js:66
                 });
-                socket.on('command.invite', function (resp) {
-                    AgarBot.pubsub.trigger('command.invite', resp);
+                socket.on('command.recived', function (resp) {
+                    AgarBot.pubsub.trigger('command.recived', resp);
                     //Listen on js/FeedBot/FeedBot.js:66
                 });
                 socket.on('command.changeBotSetting', function (resp) {
@@ -321,6 +324,9 @@
                 });
                 socket.on('client.leave', function (resp) {
                     AgarBot.pubsub.trigger('client.leave', resp);
+                });
+                socket.on('client.connect', function (resp) {
+                    AgarBot.pubsub.trigger('client.connect', resp);
                 });
                 socket.on('room.create', function (resp) {
                     AgarBot.pubsub.trigger('room.create', resp);
