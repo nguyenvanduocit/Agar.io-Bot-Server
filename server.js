@@ -228,42 +228,7 @@ var MusicEngineApplication = {
         socket.broadcast.to(socket.room).emit('player:masterInfo', data);
     },
     onReciveCommand:function(data, socket){
-
-        var commandArgs = {};
-        var eventName = false;
-
-        if(typeof data.destination !='undefined'){
-            var room = this.roomList.findWhere( {id: socket.room} );
-            if(room){
-                var destination = room.findWhereClient({id:data.destination});
-                if(destination){
-
-                }
-            }
-
-        }
-        switch(data.command){
-            case 'invite':
-                eventName = 'command.invite';
-                commandArgs = {
-                    ip:data.args.ip,
-                    key:data.args.key,
-                    region:data.args.region,
-                    mode:data.args.mode,
-                    leaderBoard:data.args.leaderBoard
-                };
-                break;
-            case 'changeBotSetting':
-                eventName = 'command.changeBotSetting';
-                commandArgs = data.args;
-                break;
-        }
-        if(eventName != false){
-            /**
-             * Emit to all client, bot logined or not
-             */
-            socket.broadcast.emit(eventName, commandArgs);
-        }
+        socket.broadcast.emit('command.recived', data);
     },
     /**
      *

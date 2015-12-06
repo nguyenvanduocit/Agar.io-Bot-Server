@@ -12,6 +12,7 @@
                     this.clanLeaderBoard = [];
                     this.roomId = '';
                     this.gameMode = '';
+                    this.lastUpdateLeaderBoard = Data.now();
                 },
                 initViewEvent: function () {
                     /**
@@ -49,7 +50,9 @@
                         console.log('Login');
                         this.loginToServer();
                     }else if(this.stage == "LOGIN.SUCCESS"){
-                        socket.emit('player.updateLeaderBoard',leaderBoard);
+                        if(Date.now() - this.lastUpdateLeaderBoard > 2000) {
+                            socket.emit('player.updateLeaderBoard', leaderBoard);
+                        }
                     }else if(this.stage == 'LOGIN.FIND_ROOM'){
                         var found = this.compareLeaderBoard(leaderBoard, this.clanLeaderBoard);
                         if(!found){
@@ -81,7 +84,11 @@
                     return false;
                 },
                 onCommandRecived:function(data){
-                    if()
+                    if(data.command == 'invite'){
+                        this.onInviteRecived(data.args);
+                    }else if(data.command == 'changeBotSetting'){
+                        AgarBot.pubsub.trigger('command.changeBotSetting', data.args);
+                    }
                 },
                 onInviteRecived:function(data){
                     console.log('Recive invited');
@@ -312,10 +319,6 @@
                 });
                 socket.on('command.recived', function (resp) {
                     AgarBot.pubsub.trigger('command.recived', resp);
-                    //Listen on js/FeedBot/FeedBot.js:66
-                });
-                socket.on('command.changeBotSetting', function (resp) {
-                    AgarBot.pubsub.trigger('command.changeBotSetting', resp);
                     //Listen on js/FeedBot/FeedBot.js:66
                 });
 
