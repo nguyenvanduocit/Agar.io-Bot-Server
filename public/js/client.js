@@ -12,7 +12,6 @@
                     this.clanLeaderBoard = [];
                     this.roomId = '';
                     this.gameMode = '';
-                    this.lastUpdateLeaderBoard = Data.now();
                 },
                 initViewEvent: function () {
                     /**
@@ -50,9 +49,7 @@
                         console.log('Login');
                         this.loginToServer();
                     }else if(this.stage == "LOGIN.SUCCESS"){
-                        if(Date.now() - this.lastUpdateLeaderBoard > 2000) {
-                            socket.emit('player.updateLeaderBoard', leaderBoard);
-                        }
+                        socket.emit('player.updateLeaderBoard',leaderBoard);
                     }else if(this.stage == 'LOGIN.FIND_ROOM'){
                         var found = this.compareLeaderBoard(leaderBoard, this.clanLeaderBoard);
                         if(!found){
